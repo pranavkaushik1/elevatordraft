@@ -77,6 +77,19 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setElevatorPosition(double position) {
+    // getting kp value, not sure if this value will work great, we have to test and check
+    //no way to know until we test it
+
+    //do 1(max output)/(1/3 * max height)
+    //so we are at max output until error is less than 33% of the max height, then we start slowing
+    double kp = 3/Constants.MAX_ELEVATOR_HEIGHT;
+    if(kp > 1.00)
+      kp = 1.00;
+
+
+
+
+
     // these two js make sure that the elevator position is within the bounds
     // we need to ask malla if the min and max will be the absolute min and max of the elevator
     // if thats the case then theres obv no need for these lines because it'll
@@ -99,7 +112,7 @@ public class Elevator extends SubsystemBase {
     // i dont rlly get how it works, ill js keep it here:
     // double acceleration = e_PidController.getSetpoint().velocity;
 
-    double motorOutput = velocity + feedForward; // this will set our motor speed based on the PID and feedForward shit
+    double motorOutput = (velocity + feedForward)*(kp); // this will set our motor speed based on the PID and feedForward shit
     elevatorUpMotor.set(motorOutput);
     elevatorDownMotor.set(-motorOutput); // inverted motor
 
