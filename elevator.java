@@ -109,6 +109,10 @@ public class Elevator extends SubsystemBase {
     // i dont rlly get how it works, ill js keep it here:
     // double acceleration = e_PidController.getSetpoint().velocity;
 
+
+
+
+
     double motorOutput = error*(kp); // this will set our motor speed based on the PID and feedForward shit
     if(motorOutput > 1.00)
       motorOutput = 1.00;
@@ -131,7 +135,15 @@ public class Elevator extends SubsystemBase {
 
 }
 
+public void reset(double currentPosition) {
 
+  DigitalInput limitSwitch = new DigitalInput(0);
+
+  if (limitSwitch.get()) {
+    currentPosition = 0;
+    motorOutput.set(0);
+  }
+}
 
 public void setSP(double position) {
   // getting kp value, not sure if this value will work great, we have to test and check
