@@ -86,7 +86,8 @@ public class Elevator extends SubsystemBase {
     if(kp > 1.00)
       kp = 1.00;
 
-
+    else if(kp<-1.00)
+      kp = -1.00;
 
 
 
