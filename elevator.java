@@ -76,20 +76,15 @@ public class Elevator extends SubsystemBase {
     elevatorDownMotor.configure(elevatorDownConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public void setElevatorPosition(double position) {
+  public void setMid(double position) {
     // getting kp value, not sure if this value will work great, we have to test and check
     //no way to know until we test it
 
     //do 1(max output)/(1/3 * max height)
     //so we are at max output until error is less than 33% of the max height, then we start slowing
     double kp = 3/Constants.MAX_ELEVATOR_HEIGHT;
-    if(kp > 1.00)
-      kp = 1.00;
 
-    else if(kp<-1.00)
-      kp = -1.00;
-
-
+      double destination = Constants.MID_POSITION;
 
     // these two js make sure that the elevator position is within the bounds
     // we need to ask malla if the min and max will be the absolute min and max of the elevator
@@ -104,23 +99,97 @@ public class Elevator extends SubsystemBase {
     }
 
     double currentPosition = e_UpEncoder.getPosition(); // we use up encoder for getting position im pretty sure
-    double velocity = e_PidController.calculate(currentPosition, position);
-    double acceleration = e_PidController.getSetpoint().velocity;
-    double feedForward = e_Feedforward.calculate(velocity, acceleration);  // ok so when i looked online, feedForward takes in
+    //double velocity = e_PidController.calculate(currentPosition, position);
+    //double acceleration = e_PidController.getSetpoint().velocity;
+    double error = destination - currentPosition;
+    //double feedForward = e_Feedforward.calculate(velocity, acceleration);  // ok so when i looked online, feedForward takes in
     // both velocity and acceleration.
 
     // this is the code for accel i found online but because
     // i dont rlly get how it works, ill js keep it here:
     // double acceleration = e_PidController.getSetpoint().velocity;
 
-    double motorOutput = (velocity + feedForward)*(kp); // this will set our motor speed based on the PID and feedForward shit
-    elevatorUpMotor.set(motorOutput);
-    elevatorDownMotor.set(-motorOutput); // inverted motor
+    double motorOutput = error*(kp); // this will set our motor speed based on the PID and feedForward shit
+    if(motorOutput > 1.00)
+      motorOutput = 1.00;
+    else if(motorOutput < -1.00)
+      motorOutput = -1.00;
+
+    if(motorOutput>0) {
+      elevatorUpMotor.set(motorOutput);
+      elevatorDownMotor.set(0);
+    }
+    else if(motorOutput<0){
+      elevatorDownMotor.set(-motorOutput); 
+      elevatorUpMotor.set(0);
+    }
+      
+      // inverted motor
 
     // im missing tolerance because if the distance to the target position is too less it could move and stop abruptly
     // we can implement this later
 
 }
+
+
+
+public void setSP(double position) {
+  // getting kp value, not sure if this value will work great, we have to test and check
+  //no way to know until we test it
+
+  //do 1(max output)/(1/3 * max height)
+  //so we are at max output until error is less than 33% of the max height, then we start slowing
+  double kp = 3/Constants.MAX_ELEVATOR_HEIGHT;
+
+    double destination = Constants.SCORING_POSITION;
+
+  // these two js make sure that the elevator position is within the bounds
+  // we need to ask malla if the min and max will be the absolute min and max of the elevator
+  // if thats the case then theres obv no need for these lines because it'll
+  // always be in the bounds
+  if (position > Constants.MAX_ELEVATOR_HEIGHT) {
+      position = Constants.MAX_ELEVATOR_HEIGHT;
+  }
+
+  if (position < Constants.MAX_ELEVATOR_HEIGHT) {
+      position = Constants.MAX_ELEVATOR_HEIGHT;
+  }
+
+  double currentPosition = e_UpEncoder.getPosition(); // we use up encoder for getting position im pretty sure
+  //double velocity = e_PidController.calculate(currentPosition, position);
+  //double acceleration = e_PidController.getSetpoint().velocity;
+  double error = destination - currentPosition;
+  //double feedForward = e_Feedforward.calculate(velocity, acceleration);  // ok so when i looked online, feedForward takes in
+  // both velocity and acceleration.
+
+  // this is the code for accel i found online but because
+  // i dont rlly get how it works, ill js keep it here:
+  // double acceleration = e_PidController.getSetpoint().velocity;
+
+  double motorOutput = error*(kp); // this will set our motor speed based on the PID and feedForward shit
+  if(motorOutput > 1.00)
+    motorOutput = 1.00;
+  else if(motorOutput < -1.00)
+    motorOutput = -1.00;
+
+  if(motorOutput>0) {
+    elevatorUpMotor.set(motorOutput);
+    elevatorDownMotor.set(0);
+  }
+  else if(motorOutput<0){
+    elevatorDownMotor.set(-motorOutput); 
+    elevatorUpMotor.set(0);
+  }
+    
+    // inverted motor
+
+  // im missing tolerance because if the distance to the target position is too less it could move and stop abruptly
+  // we can implement this later
+
+}
+
+
+
 
   public void stop() {
     elevatorUpMotor.set(0);
