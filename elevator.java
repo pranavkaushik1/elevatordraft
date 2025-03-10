@@ -11,7 +11,6 @@ import frc.robot.Constants;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.*;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -29,13 +28,13 @@ import edu.wpi.first.wpilibj.DigitalInput;
 public class Elevator extends SubsystemBase {
 
 
-  private static final SparkBase motorOutput = null;
     SparkMax elevatorUpMotor = new SparkMax(Constants.kElevatorUp, MotorType.kBrushless);
     SparkMax elevatorDownMotor = new SparkMax(Constants.kElevatorDown, MotorType.kBrushless);
     SparkMaxConfig elevatorUpConfig;
     SparkMaxConfig elevatorDownConfig;
     RelativeEncoder e_UpEncoder = elevatorUpMotor.getEncoder();
     RelativeEncoder e_DownEncoder = elevatorDownMotor.getEncoder();
+    private final DigitalInput limitSwitch = new DigitalInput(0);
   
     private double elevator_kP = Constants.ELEVATOR_PID_CONSTANTS[0];
     private double elevator_kI = Constants.ELEVATOR_PID_CONSTANTS[1];
@@ -78,6 +77,10 @@ public class Elevator extends SubsystemBase {
       
       elevatorUpMotor.configure(elevatorUpConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
       elevatorDownMotor.configure(elevatorDownConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
+    public double getEncoderPosition() {
+      return e_UpEncoder.getPosition();
     }
   
     public void setMid(double position) {
@@ -140,17 +143,11 @@ public class Elevator extends SubsystemBase {
   }
   
   public void reset() {
-  
-    DigitalInput limitSwitch = new DigitalInput(0);
-  
-    if (limitSwitch.get()) {
-      double currentPosition = e_UpEncoder.getPosition();
-      setZero(currentPosition);
-      motorOutput.set(0);
-  } else {
-    double currentPosition = e_UpEncoder.getPosition();
-    setZero(currentPosition);
-  }
+    while (!limitSwitch.get()) { 
+        elevatorDownMotor.set(-0.2);
+    }
+    stop();
+    e_UpEncoder.setPosition(0);
 }
 
 public void setSP(double position) {
